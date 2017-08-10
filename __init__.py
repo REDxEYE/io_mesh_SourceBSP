@@ -6,7 +6,6 @@ bl_info = {
     'warning': 'DO NOT ENABLE "IMPORT STATICPROPS"',
     "location": "File > Import-Export > SourceEngine BSP (.bsp) ",
     "description": "Addon allows to import Source Engine maps",
-    "warning": "",
     #"wiki_url": "http://www.barneyparker.com/blender-json-import-export-plugin",
     #"tracker_url": "http://www.barneyparker.com/blender-json-import-export-plugin",
     "category": "Import-Export"}
