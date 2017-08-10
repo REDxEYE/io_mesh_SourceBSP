@@ -3,6 +3,7 @@ bl_info = {
     "author": "RED_EYE",
     "version": (0, 5),
     "blender": (2, 78, 0),
+    'warning': 'DO NOT ENABLE "IMPORT STATICPROPS"',
     "location": "File > Import-Export > SourceEngine BSP (.bsp) ",
     "description": "Addon allows to import Source Engine maps",
     "warning": "",
