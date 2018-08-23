@@ -13,12 +13,13 @@ try:
         import bpy
     except:
         pass
-except:
+except ImportError:
     import bpy
-    import BSP_DATA
+    from . import BSP_DATA
     from .BSP import BSP
     from .BSP_DATA import *
     from .ValveFileSystem import valve
+
 
 from pathlib import Path
 

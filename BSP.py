@@ -3,10 +3,16 @@ import sys
 from pprint import pprint
 from typing import Type
 import re
-from BSP_DATA import *
-from ValveFileSystem.path import Path
-from ValveFileSystem.valve import KeyValueFile
-from ByteIO import ByteIO
+try:
+    from BSP_DATA import *
+    from ValveFileSystem.path import Path
+    from ValveFileSystem.valve import KeyValueFile
+    from ByteIO import ByteIO
+except ImportError:
+    from .BSP_DATA import *
+    from .ValveFileSystem.path import Path
+    from .ValveFileSystem.valve import KeyValueFile
+    from .ByteIO import ByteIO
 
 fix_re = re.compile(r"_[\d]+_[\d]+_[\d]+")
 

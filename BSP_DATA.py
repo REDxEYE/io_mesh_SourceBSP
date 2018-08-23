@@ -1,8 +1,10 @@
 import math
 from enum import IntEnum
 from typing import List
-
-from ByteIO import ByteIO
+try:
+    from .ByteIO import ByteIO
+except:
+    from ByteIO import ByteIO
 
 ####### DEFINES #######
 

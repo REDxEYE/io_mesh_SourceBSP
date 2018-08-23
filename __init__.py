@@ -6,12 +6,17 @@ bl_info = {
     'warning': 'DO NOT ENABLE "IMPORT STATICPROPS"',
     "location": "File > Import-Export > SourceEngine BSP (.bsp) ",
     "description": "Addon allows to import Source Engine maps",
-    #"wiki_url": "http://www.barneyparker.com/blender-json-import-export-plugin",
-    #"tracker_url": "http://www.barneyparker.com/blender-json-import-export-plugin",
-    "category": "Import-Export"}
-from . import BSP,BSP_DATA,BSP_IO
+    # "wiki_url": "http://www.barneyparker.com/blender-json-import-export-plugin",
+    # "tracker_url": "http://www.barneyparker.com/blender-json-import-export-plugin",
+    "category": "Import-Export"
+}
+try:
+    from . import BSP, BSP_DATA, BSP_IO
+except ImportError:
+    import BSP, BSP_DATA, BSP_IO
 if "bpy" in locals():
     import importlib
+
     if "BSP_import" in locals():
         importlib.reload(BSP)
         importlib.reload(BSP_DATA)
@@ -19,8 +24,7 @@ if "bpy" in locals():
 else:
     import bpy
 
-from bpy.props import StringProperty, BoolProperty
-from bpy_extras.io_utils import ExportHelper
+from bpy.props import StringProperty
 
 
 class BSPImport(bpy.types.Operator):
@@ -30,15 +34,14 @@ class BSPImport(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     filepath = StringProperty(
-            subtype='FILE_PATH',
-            )
+        subtype='FILE_PATH',
+    )
     # Import_staticProps = BoolProperty(name="Import StaticProps?",
     #                                default=False, subtype='UNSIGNED')
     # WorkDir = StringProperty(name="path to folder with gameinfo.txt", maxlen=1024, default="", subtype='FILE_PATH')
     filter_glob = StringProperty(default="*.bsp", options={'HIDDEN'})
 
     def execute(self, context):
-
         BSP_IO.BSPIO(self.filepath)
         return {'FINISHED'}
 
@@ -50,6 +53,7 @@ class BSPImport(bpy.types.Operator):
 
 def menu_import(self, context):
     self.layout.operator(BSPImport.bl_idname, text="BSP mesh (.BSP)")
+
 
 def register():
     bpy.utils.register_module(__name__)
