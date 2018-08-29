@@ -273,7 +273,7 @@ class BSPIO:
                     vertex_normals.append(normal)
             md.create_normals_split()
             md.use_auto_smooth = True
-            md.normals_split_custom_set(vertex_normals)
+            # md.normals_split_custom_set(vertex_normals)
             # md.normals_split_custom_set_from_vertices(vertex_normals[:len(self.verts)])
 
             bpy.ops.object.mode_set(mode='EDIT')
