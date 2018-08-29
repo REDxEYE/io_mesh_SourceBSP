@@ -175,7 +175,7 @@ class SourceVector(Dummy):
         return SourceVector((x, y, z))
 
     @property
-    def asList(self):
+    def as_list(self):
         return [self.x, self.y, self.z]
 
     @property

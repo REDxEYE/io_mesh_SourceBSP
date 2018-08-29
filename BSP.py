@@ -1,12 +1,12 @@
 import os.path
 import sys
+from pathlib import Path
 from pprint import pprint
 from typing import Type
 import re
+
 try:
     from BSP_DATA import *
-    from ValveFileSystem.path import Path
-    from ValveFileSystem.valve import KeyValueFile
     from ByteIO import ByteIO
 except ImportError:
     from .BSP_DATA import *

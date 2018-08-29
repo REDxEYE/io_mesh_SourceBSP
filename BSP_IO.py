@@ -11,13 +11,17 @@ try:
 
     try:
         import bpy
-    except:
+    except ImportError:
         pass
+    import mathutils
+    from mathutils import Vector, Matrix, Euler
 except ImportError:
     import bpy
     from . import BSP_DATA
     from .BSP import BSP
     from .BSP_DATA import *
+    import mathutils
+    from mathutils import Vector, Matrix, Euler
     # from .ValveFileSystem import valve
 
 
@@ -44,6 +48,7 @@ class BSPIO:
         self.object_index = 0
         self.prepare_models()
         self.add_lights()
+        self.place_static_props()
 
     def prepare_models(self):
         for i, model in enumerate(self.bsp.models):
@@ -309,6 +314,16 @@ class BSPIO:
             lamp_nodes = lamp_data.node_tree.nodes['Emission']
             lamp_nodes.inputs['Strength'].default_value = light.magnitude() * 10
             lamp_nodes.inputs['Color'].default_value = light.normalize().to_array_rgba
+
+    def place_static_props(self):
+        for static_prop in self.bsp.static_prop_lump.props:
+            empty = bpy.data.objects.new("empty", None)
+            bpy.context.scene.objects.link(empty)
+            pos = Vector(static_prop.origin.as_list)
+            rot = Euler(static_prop.angles.as_list)
+            empty.matrix_basis.identity()
+            empty.location = pos
+            empty.rotation_euler = rot
 
 
 if __name__ == '__main__':
