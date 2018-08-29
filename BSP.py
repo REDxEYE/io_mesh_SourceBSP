@@ -17,7 +17,7 @@ fix_re = re.compile(r"_[\d]+_[\d]+_[\d]+")
 class BSP:
 
     def __init__(self, filepath):
-        print("Reading {}".format(Path(filepath).filename))
+        print("Reading {}".format(Path(filepath).name))
         self.reader = ByteIO(path=filepath)
         self.filename = os.path.basename(filepath)[:-4]
         self.header = Header()
