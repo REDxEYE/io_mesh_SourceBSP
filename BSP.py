@@ -10,8 +10,6 @@ try:
     from ByteIO import ByteIO
 except ImportError:
     from .BSP_DATA import *
-    from .ValveFileSystem.path import Path
-    from .ValveFileSystem.valve import KeyValueFile
     from .ByteIO import ByteIO
 
 fix_re = re.compile(r"_[\d]+_[\d]+_[\d]+")
@@ -112,22 +110,25 @@ class BSP:
 
     def test(self):
         print(self.header)
+        for s in self.static_prop_lump.props:
+            print(s)
         # for obj in self.nodes:
         #     pprint(obj)
-        print('Vertexes')
-        for v in self.vertexes:
-            print(v)
-        print('Normals')
-        for vn in self.normals:
-            print(vn)
-        print('Normal indices')
-        for vni in self.normal_indices:
-            print(vni)
+        # print('Vertexes')
+        # for v in self.vertexes:
+        #     print(v)
+        # print('Normals')
+        # for vn in self.normals:
+        #     print(vn)
+        # print('Normal indices')
+        # for vni in self.normal_indices:
+        #     print(vni)
     # def read_key_values(self,lump:Lump):
     #     self.reader.seek(lump.offset)
     #     buffer = self.reader.read_ascii_string(lump.length)
     #     self.key_values = KeyValueFile(string_buffer=buffer.split("\n"))
     #     print(self.key_values)
+
 
 
 if __name__ == '__main__':

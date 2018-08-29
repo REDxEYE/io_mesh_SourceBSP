@@ -7,7 +7,7 @@ try:
     import BSP_DATA
     from BSP import BSP
     from BSP_DATA import *
-    from ValveFileSystem import valve
+    # from ValveFileSystem import valve
 
     try:
         import bpy
@@ -18,7 +18,7 @@ except ImportError:
     from . import BSP_DATA
     from .BSP import BSP
     from .BSP_DATA import *
-    from .ValveFileSystem import valve
+    # from .ValveFileSystem import valve
 
 
 from pathlib import Path

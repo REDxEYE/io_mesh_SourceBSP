@@ -26,6 +26,13 @@ SURF_NODECALS = 0x2000  # Don't receive decals
 SURF_NOCHOP = 0x4000  # Don't subdivide patches on this surface
 SURF_HITBOX = 0x8000  # surface is part of a hitbox
 
+class SettingContainer:
+    settings = {}
+
+    @classmethod
+    def update_settings(cls,**kwargs):
+        cls.settings.update(kwargs)
+
 
 class LUMP_ENUM(IntEnum):
     LUMP_ENTITIES = 0
@@ -82,7 +89,7 @@ class emittype_t(IntEnum):
     emit_skyambient = 5  # spherical light source with no falloff (surface must trace to SKY texture)
 
 
-class Header:
+class Header(SettingContainer):
 
     def __init__(self):
         self.ident = ''
@@ -96,12 +103,13 @@ class Header:
     def read(self, reader: ByteIO):
         self.ident = reader.read_fourcc()
         self.version = reader.read_int32()
+        self.update_settings(BSP_VERSION = self.version)
         self.lumps = [Lump(i).read(reader) for i in range(64)]
         self.mapRevision = reader.read_int32()
         return self
 
 
-class Lump:
+class Lump(SettingContainer):
     def __init__(self, nid):
         self.offset = 0
         self.length = 0
@@ -124,7 +132,7 @@ class Lump:
         return self
 
 
-class Dummy:
+class Dummy(SettingContainer):
     size = 4
     bsp = None
     def read(self, reader: ByteIO):
