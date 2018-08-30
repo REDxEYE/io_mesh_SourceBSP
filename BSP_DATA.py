@@ -1,6 +1,8 @@
 import math
 from enum import IntEnum
+from pprint import pformat
 from typing import List
+
 try:
     from .ByteIO import ByteIO
 except:
@@ -26,11 +28,12 @@ SURF_NODECALS = 0x2000  # Don't receive decals
 SURF_NOCHOP = 0x4000  # Don't subdivide patches on this surface
 SURF_HITBOX = 0x8000  # surface is part of a hitbox
 
+
 class SettingContainer:
     settings = {}
 
     @classmethod
-    def update_settings(cls,**kwargs):
+    def update_settings(cls, **kwargs):
         cls.settings.update(kwargs)
 
 
@@ -103,7 +106,7 @@ class Header(SettingContainer):
     def read(self, reader: ByteIO):
         self.ident = reader.read_fourcc()
         self.version = reader.read_int32()
-        self.update_settings(BSP_VERSION = self.version)
+        self.update_settings(BSP_VERSION=self.version)
         self.lumps = [Lump(i).read(reader) for i in range(64)]
         self.mapRevision = reader.read_int32()
         return self
@@ -135,6 +138,7 @@ class Lump(SettingContainer):
 class Dummy(SettingContainer):
     size = 4
     bsp = None
+
     def read(self, reader: ByteIO):
         raise NotImplementedError()
 
@@ -517,10 +521,11 @@ class WorldLight(Dummy):
 
     @property
     def size(self):
-        if self.bsp.version>20:
+        if self.bsp.version > 20:
             return 100
         else:
             return 88
+
     def read(self, reader: ByteIO):
         self.origin.read(reader)
         self.intensity.read(reader)
@@ -541,6 +546,173 @@ class WorldLight(Dummy):
         self.texinfo = reader.read_int32()
         self.owner = reader.read_int32()
         return self
+
+
+class DispInfo(Dummy):
+    size = 176
+
+    def __init__(self):
+        self.start_position = SourceVector()
+        self.disp_vert_start = 0
+        self.disp_tri_start = 0
+        self.power = 0
+        self.min_tess = 0
+        self.smoothing_angle = .0
+        self.contents = 0
+        self.map_face = 0
+        self.lightmap_alpha_start = 0
+        self.lightmap_sample_position_start = 0
+        self.displace_neighbors = []  # type: List[DispNeighbor]
+        self.displace_corner_neighbors = []  # type: List[DisplaceCornerNeighbors]
+        self.allowed_verts = []  # type: List[int]
+
+    def read(self, reader: ByteIO):
+        self.start_position.read(reader)
+        self.disp_vert_start = reader.read_uint32()
+        self.disp_tri_start = reader.read_uint32()
+        self.power = reader.read_uint32()
+        self.min_tess = reader.read_uint32()
+        self.smoothing_angle = reader.read_float()
+        self.contents = reader.read_uint32()
+        self.map_face = reader.read_uint16()
+        self.lightmap_alpha_start = reader.read_uint32()
+        self.lightmap_sample_position_start = reader.read_uint32()
+        for _ in range(4):
+            disp_neighbor = DispNeighbor()
+            disp_neighbor.read(reader)
+            self.displace_neighbors.append(disp_neighbor)
+        for _ in range(4):
+            displace_corner_neighbors = DisplaceCornerNeighbors()
+            displace_corner_neighbors.read(reader)
+            self.displace_corner_neighbors.append(displace_corner_neighbors)
+        reader.skip(6)
+        self.allowed_verts = [reader.read_uint32() for _ in range(10)]
+
+
+
+    def __str__(self):
+        return pformat(self.__dict__, width=250, depth=8)
+
+    def __repr__(self):
+        return pformat(self.__dict__, width=250, depth=8)
+
+    @property
+    def get_power_size(self):
+        return 1 << self.power
+
+    @property
+    def vertex_count(self):
+        return (self.get_power_size + 1) * (self.get_power_size + 1)
+
+    @property
+    def triangle_tag_count(self):
+        return 2 * self.power * self.power
+
+
+class DispVert(Dummy):
+    size = 20
+
+    # {
+    # public:
+    # 	DECLARE_BYTESWAP_DATADESC();
+    # 	Vector		m_vVector;		// Vector field defining displacement volume.
+    # 	float		m_flDist;		// Displacement distances.
+    # 	float		m_flAlpha;		// "per vertex" alpha values.
+    # };
+    def __init__(self):
+        self.vector = SourceVector()
+        self.dist = 0.0
+        self.alpha = 0.0
+
+    def read(self, reader: ByteIO):
+        self.vector.read(reader)
+        self.dist = reader.read_float()
+        self.alpha = reader.read_float()
+
+    def __str__(self):
+        return pformat(self.__dict__, width=250, depth=8)
+
+    def __repr__(self):
+        return pformat(self.__dict__, width=250, depth=8)
+
+
+class DispSubNeighbor(Dummy):
+    size = 5
+
+    # struct CDispSubNeighbor
+    # {
+    # public:
+    # 	DECLARE_BYTESWAP_DATADESC();
+    # 	unsigned short		GetNeighborIndex() const		{ return m_iNeighbor; }
+    # 	NeighborSpan		GetSpan() const					{ return (NeighborSpan)m_Span; }
+    # 	NeighborSpan		GetNeighborSpan() const			{ return (NeighborSpan)m_NeighborSpan; }
+    # 	NeighborOrientation	GetNeighborOrientation() const	{ return (NeighborOrientation)m_NeighborOrientation; }
+    #
+    # 	bool				IsValid() const				{ return m_iNeighbor != 0xFFFF; }
+    # 	void				SetInvalid()				{ m_iNeighbor = 0xFFFF; }
+    #
+    #
+    # public:
+    # 	unsigned short		m_iNeighbor;		// This indexes into ddispinfos.
+    # 											// 0xFFFF if there is no neighbor here.
+    #
+    # 	unsigned char		m_NeighborOrientation;		// (CCW) rotation of the neighbor wrt this displacement.
+    #
+    # 	// These use the NeighborSpan type.
+    # 	unsigned char		m_Span;						// Where the neighbor fits onto this side of our displacement.
+    # 	unsigned char		m_NeighborSpan;				// Where we fit onto our neighbor.
+    # };
+    def __init__(self):
+        self.neighbor = 0
+        self.neighbor_orientation = 0
+        self.span = 0
+        self.neighbor_span = 0
+
+    def read(self, reader: ByteIO):
+        self.neighbor = reader.read_uint16()
+        self.neighbor_orientation = reader.read_uint8()
+        self.span = reader.read_uint8()
+        reader.skip(1)
+        self.neighbor_span = reader.read_uint8()
+
+    def __str__(self):
+        return pformat(self.__dict__, width=250, depth=8)
+
+    def __repr__(self):
+        return pformat(self.__dict__, width=250, depth=8)
+
+
+class DispNeighbor(Dummy):
+    def __init__(self):
+        self.sub_neighbors = []  # type: List[DispSubNeighbor]
+
+    def read(self,reader:ByteIO):
+        for _ in range(2):
+            sub_neighbor = DispSubNeighbor()
+            sub_neighbor.read(reader)
+            self.sub_neighbors.append(sub_neighbor)
+
+    def __str__(self):
+        return pformat(self.__dict__, width=250, depth=8)
+
+    def __repr__(self):
+        return pformat(self.__dict__, width=250, depth=8)
+
+
+class DisplaceCornerNeighbors(Dummy):
+    def __init__(self):
+        self.neighbor_indices = [None] * 4  # type: List[int]
+        self.neighbor_count = 0
+
+    def read(self, reader: ByteIO):
+        self.neighbor_indices = reader.read_fmt('H'*4)
+        self.neighbor_count = reader.read_uint8()
+
+    def __str__(self):
+        return pformat(self.__dict__, width=250, depth=8)
+
+    def __repr__(self):
+        return pformat(self.__dict__, width=250, depth=8)
 
 
 class GameLumpHeader(Dummy):
